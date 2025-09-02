@@ -1,15 +1,18 @@
 import React, { useState } from 'react'
 import { Plus, Menu, X } from 'lucide-react'
 import { useTripBudget } from '../context/TripBudgetContext'
+import { useAuth } from '../context/AuthContext'
 import Sidebar from './Sidebar'
 import TripList from './TripList'
 import TripCreation from './TripCreation'
 import TripDetail from './TripDetail'
+import Settings from './Settings'
 import Card from './ui/Card'
 import Button from './ui/Button'
 
 function Dashboard() {
-  const { trips, currentTrip, user } = useTripBudget()
+  const { trips, currentTrip } = useTripBudget()
+  const { user } = useAuth()
   const [activeView, setActiveView] = useState('trips')
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
@@ -19,12 +22,24 @@ function Dashboard() {
         return <TripCreation onComplete={() => setActiveView('trips')} />
       case 'trip-detail':
         return <TripDetail trip={currentTrip} onBack={() => setActiveView('trips')} />
+      case 'settings':
+        return <Settings />
+      case 'analytics':
+        // This would be a global analytics view, not trip-specific
+        return (
+          <div className="space-y-6">
+            <h1 className="text-3xl font-semibold text-text-primary">Analytics</h1>
+            <Card className="p-6">
+              <p className="text-text-secondary">Global analytics dashboard coming soon!</p>
+            </Card>
+          </div>
+        )
       default:
         return (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-semibold text-text-primary">Welcome back, {user.name}!</h1>
+                <h1 className="text-3xl font-semibold text-text-primary">Welcome back, {user?.name || 'Traveler'}!</h1>
                 <p className="text-sm text-text-secondary mt-1">Plan and track your travel expenses</p>
               </div>
               <Button
@@ -81,7 +96,13 @@ function Dashboard() {
         transform transition-transform duration-200 ease-in-out
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
-        <Sidebar activeView={activeView} onViewChange={setActiveView} />
+        <Sidebar 
+          activeView={activeView} 
+          onViewChange={(view) => {
+            setActiveView(view)
+            setSidebarOpen(false) // Close sidebar on mobile when view changes
+          }} 
+        />
       </div>
 
       {/* Mobile overlay */}
